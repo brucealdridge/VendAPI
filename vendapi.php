@@ -46,8 +46,26 @@ class vendapi {
 
     return $users;
   }
-  public function getProducts() { return $this->_getProducts(); }
-  public function getProduct($id) { $result = $this->_getProducts('/id/'.$id); return $result[0]; }
+  /**
+   * Get all products
+   * @param array $options .. optional
+   * @return array
+   */
+  public function getProducts($options = array()) {
+    $path = '';
+    if (count($options)) {
+      foreach($options as $k => $v) {
+        $path .= '/'.$k.'/'.$v;
+      }
+    }
+    return $this->_getProducts($path);
+  }
+  /**
+   * Get a single product by id
+   * @return object
+   */
+  public function getProduct($id) { $result = $this->getProducts(array('id' => $id)); return $result[0]; }
+  public function getProductsSince($date) { $result = $this->getProducts(array('since' => $date)); return $result; }
 
   private function _getProducts($path) {
     $result = $this->request('/api/products'.$path);
@@ -60,9 +78,7 @@ class vendapi {
     return $products;
   }
   public function saveProduct($product) {
-    $this->debug = true;
     $result = $this->request('/api/products',$product->toArray());
-    var_dump($this);exit;
     return new vendproduct($result->product, $this);
   }
 
@@ -84,11 +100,13 @@ class vendapi {
         ));
 
     }
+    if ($this->debug) {
+      curl_setopt($this->curl, CURLOPT_VERBOSE, true);
+    }
 
     curl_setopt($this->curl,CURLOPT_URL, $this->url.$path);
     //'api/register_sales/since/'.'2012-09-12 09:05:00');
     //curl_setopt($ch,CURLOPT_URL, $url.'api/stock_takes');
-    curl_setopt($this->curl,CURLOPT_HTTPHEADER,array('Accept: application/json','Content-Type: application/json'));
 
     $rawresult = curl_exec($this->curl);
     $result = json_decode($rawresult);
@@ -103,9 +121,41 @@ class vendapi {
 }
 
 class vendproduct extends vendobject {
+  /**
+   * will create/update the product using the vend api and this object will be updated
+   * @return null
+   */
   public function save () {
     // wipe current product and replace with new objects properties
     $this->_properties = $this->vend->saveProduct($this)->toArray();
+  }
+  /**
+   * get the inventory for the given outlet (default: all outlets)
+   * @param string $outlet
+   * @return int
+   */
+  public function getInventory($outlet = null) {
+    $total = 0;
+    foreach($this->_properties['inventory'] as $o) {
+      if ($o->outlet_name == $outlet) {
+        return $o->count;
+      }
+      $total += $o->count;
+    }
+    return $total;
+  }
+  /**
+   * set the inventory at $outlet to $count .. default outlet is the first found
+   * @param int $count
+   * @param string $outlet
+   */
+  public function setInventory($count, $outlet = null) {
+    foreach($this->_properties['inventory'] as $k => $o) {
+      if ($o->outlet_name == $outlet || $outlet === null) {
+        $this->_properties  ['inventory'][$k]->count = $count;
+        return;
+      }
+    }
   }
 }
 class venduser extends vendobject {
@@ -115,7 +165,7 @@ abstract class vendobject {
   protected $vend;
   protected $_properties;
 
-  function __construct($data = null, $v = null) {
+  function __construct($data = null, &$v = null) {
     $this->vend = $v;
     if ($data) {
       foreach($data as $key => $value) {
