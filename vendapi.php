@@ -61,6 +61,20 @@ class vendapi {
     return $this->_getProducts($path);
   }
   /**
+   * Get all sales
+   * @param array $options .. optional
+   * @return array
+   */
+  public function getSales($options = array()) {
+    $path = '';
+    if (count($options)) {
+      foreach($options as $k => $v) {
+        $path .= '/'.$k.'/'.$v;
+      }
+    }
+    return $this->_getSales($path);
+  }
+  /**
    * Get a single product by id
    * @return object
    */
@@ -77,10 +91,26 @@ class vendapi {
 
     return $products;
   }
+  private function _getSales($path) {
+    $result = $this->request('/api/register_sales'.$path);
+
+    $sales = array();
+    foreach($result->register_sales as $s) {
+      $sales[] = new vendsale($s, $this);
+    }
+
+    return $sales;
+  }
+  /**
+   * Save vendproduct object to vend
+   * @param object $productl
+   * @return object
+   */
   public function saveProduct($product) {
     $result = $this->request('/api/products',$product->toArray());
     return new vendproduct($result->product, $this);
   }
+
 
   private function request($path, $data = null) {
     // TODO handle pager
@@ -157,6 +187,9 @@ class vendproduct extends vendobject {
       }
     }
   }
+}
+class vendsale extends vendobject {
+
 }
 class venduser extends vendobject {
 
