@@ -141,6 +141,10 @@ class vendapi {
     $rawresult = curl_exec($this->curl);
     $result = json_decode($rawresult);
 
+    if ($result && isset($result->error)) {
+      throw new Exception($result->error .' : '. $result->details);
+    }
+
     if ($this->debug) {
       $this->last_result_raw = $rawresult;
       $this->curl_debug = curl_getinfo($this->curl);
