@@ -80,6 +80,7 @@ class vendapi {
    */
   public function getProduct($id) { $result = $this->getProducts(array('id' => $id)); return $result[0]; }
   public function getProductsSince($date) { $result = $this->getProducts(array('since' => $date)); return $result; }
+  public function getSalesSince($date) { $result = $this->getSales(array('since' => $date)); return $result; }
 
   private function _getProducts($path) {
     $result = $this->request('/api/products'.$path);
