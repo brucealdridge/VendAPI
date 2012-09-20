@@ -10,6 +10,8 @@ class vendapi {
 
   public $debug = false;
 
+  public $default_outlet = 'Main Outlet';
+
   function __construct($url, $username, $password) {
     // trim trailing slash for niceness
     $this->url = rtrim($url,'/');
@@ -78,7 +80,7 @@ class vendapi {
    * Get a single product by id
    * @return object
    */
-  public function getProduct($id) { $result = $this->getProducts(array('id' => $id)); return $result[0]; }
+  public function getProduct($id) { $result = $this->getProducts(array('id' => $id)); return is_array($result) && isset($result[0]) ? $result[0] : new vendproduct(null,$this); }
   public function getProductsSince($date) { $result = $this->getProducts(array('since' => $date)); return $result; }
   public function getSalesSince($date) { $result = $this->getSales(array('since' => $date)); return $result; }
 
@@ -171,6 +173,7 @@ class vendproduct extends vendobject {
    */
   public function getInventory($outlet = null) {
     $total = 0;
+    if (!isset($this->_properties['inventory']) || !is_array($this->_properties['inventory'])) return $total;
     foreach($this->_properties['inventory'] as $o) {
       if ($o->outlet_name == $outlet) {
         return $o->count;
@@ -187,10 +190,16 @@ class vendproduct extends vendobject {
   public function setInventory($count, $outlet = null) {
     foreach($this->_properties['inventory'] as $k => $o) {
       if ($o->outlet_name == $outlet || $outlet === null) {
-        $this->_properties  ['inventory'][$k]->count = $count;
+        $this->_properties['inventory'][$k]->count = $count;
         return;
       }
     }
+    $this->_properties['inventory'] = array(
+        array(
+            "outlet_name" => ($outlet ? $outlet : ($this->vend ? $this->vend->default_outlet : 'Main Outlet')),
+            "count" =>  $count,
+        )
+    );
   }
 }
 class vendsale extends vendobject {
@@ -201,7 +210,7 @@ class venduser extends vendobject {
 }
 abstract class vendobject {
   protected $vend;
-  protected $_properties;
+  protected $_properties = array();
 
   function __construct($data = null, &$v = null) {
     $this->vend = $v;
