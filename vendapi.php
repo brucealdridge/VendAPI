@@ -1,6 +1,9 @@
 <?php
 
-class vendapi {
+namespace VendAPI;
+
+class vendapi
+{
   private $url;
   private $curl;
 
@@ -12,7 +15,8 @@ class vendapi {
 
   public $default_outlet = 'Main Outlet';
 
-  function __construct($url, $username, $password) {
+  public function __construct($url, $username, $password)
+  {
     // trim trailing slash for niceness
     $this->url = rtrim($url,'/');
 
@@ -33,16 +37,18 @@ class vendapi {
 
     curl_setopt_array($this->curl, $options);
   }
-  function __destruct() {
+  public function __destruct()
+  {
     // close curl nicely
     curl_close($this->curl);
   }
 
-  public function getUsers() {
+  public function getUsers()
+  {
     $result = $this->request('/api/users');
 
     $users = array();
-    foreach($result->users as $user) {
+    foreach ($result->users as $user) {
       $users[] = new venduser($user, $this);
     }
 
@@ -53,13 +59,15 @@ class vendapi {
    * @param array $options .. optional
    * @return array
    */
-  public function getProducts($options = array()) {
+  public function getProducts($options = array())
+  {
     $path = '';
     if (count($options)) {
-      foreach($options as $k => $v) {
+      foreach ($options as $k => $v) {
         $path .= '/'.$k.'/'.$v;
       }
     }
+
     return $this->_getProducts($path);
   }
   /**
@@ -67,13 +75,15 @@ class vendapi {
    * @param array $options .. optional
    * @return array
    */
-  public function getSales($options = array()) {
+  public function getSales($options = array())
+  {
     $path = '';
     if (count($options)) {
-      foreach($options as $k => $v) {
+      foreach ($options as $k => $v) {
         $path .= '/'.$k.'/'.$v;
       }
     }
+
     return $this->_getSales($path);
   }
   /**
@@ -84,21 +94,23 @@ class vendapi {
   public function getProductsSince($date) { $result = $this->getProducts(array('since' => $date)); return $result; }
   public function getSalesSince($date) { $result = $this->getSales(array('since' => $date)); return $result; }
 
-  private function _getProducts($path) {
+  private function _getProducts($path)
+  {
     $result = $this->request('/api/products'.$path);
 
     $products = array();
-    foreach($result->products as $product) {
+    foreach ($result->products as $product) {
       $products[] = new vendproduct($product, $this);
     }
 
     return $products;
   }
-  private function _getSales($path) {
+  private function _getSales($path)
+  {
     $result = $this->request('/api/register_sales'.$path);
 
     $sales = array();
-    foreach($result->register_sales as $s) {
+    foreach ($result->register_sales as $s) {
       $sales[] = new vendsale($s, $this);
     }
 
@@ -109,13 +121,15 @@ class vendapi {
    * @param object $productl
    * @return object
    */
-  public function saveProduct($product) {
+  public function saveProduct($product)
+  {
     $result = $this->request('/api/products',$product->toArray());
+
     return new vendproduct($result->product, $this);
   }
 
-
-  private function request($path, $data = null) {
+  private function request($path, $data = null)
+  {
     // TODO handle pager
     if ($data !== null) {
       // setup for a post'
@@ -124,7 +138,7 @@ class vendapi {
         CURLOPT_POSTFIELDS => array('data' => json_encode($data)),
         CURLOPT_CUSTOMREQUEST => 'POST'
         ));
-    }else{
+    } else {
       // reset to a get
       curl_setopt_array($this->curl,array(
         CURLOPT_HTTPGET => 1,
@@ -153,16 +167,19 @@ class vendapi {
       $this->curl_debug = curl_getinfo($this->curl);
       $this->last_result = $result;
     }
+
     return $result;
   }
 }
 
-class vendproduct extends vendobject {
+class vendproduct extends vendobject
+{
   /**
    * will create/update the product using the vend api and this object will be updated
    * @return null
    */
-  public function save () {
+  public function save ()
+  {
     // wipe current product and replace with new objects properties
     $this->_properties = $this->vend->saveProduct($this)->toArray();
   }
@@ -171,15 +188,17 @@ class vendproduct extends vendobject {
    * @param string $outlet
    * @return int
    */
-  public function getInventory($outlet = null) {
+  public function getInventory($outlet = null)
+  {
     $total = 0;
     if (!isset($this->_properties['inventory']) || !is_array($this->_properties['inventory'])) return $total;
-    foreach($this->_properties['inventory'] as $o) {
+    foreach ($this->_properties['inventory'] as $o) {
       if ($o->outlet_name == $outlet) {
         return $o->count;
       }
       $total += $o->count;
     }
+
     return $total;
   }
   /**
@@ -187,10 +206,12 @@ class vendproduct extends vendobject {
    * @param int $count
    * @param string $outlet
    */
-  public function setInventory($count, $outlet = null) {
-    foreach($this->_properties['inventory'] as $k => $o) {
+  public function setInventory($count, $outlet = null)
+  {
+    foreach ($this->_properties['inventory'] as $k => $o) {
       if ($o->outlet_name == $outlet || $outlet === null) {
         $this->_properties['inventory'][$k]->count = $count;
+
         return;
       }
     }
@@ -202,46 +223,55 @@ class vendproduct extends vendobject {
     );
   }
 }
-class vendsale extends vendobject {
-
+class vendsale extends vendobject
+{
 }
-class venduser extends vendobject {
-
+class venduser extends vendobject
+{
 }
-abstract class vendobject {
+abstract class vendobject
+{
   protected $vend;
   protected $_properties = array();
 
-  function __construct($data = null, &$v = null) {
+  public function __construct($data = null, &$v = null)
+  {
     $this->vend = $v;
     if ($data) {
-      foreach($data as $key => $value) {
+      foreach ($data as $key => $value) {
         $this->_properties[$key] = $value;
       }
     }
   }
 
-  public function __set($key, $value) {
+  public function __set($key, $value)
+  {
     $this->_properties[$key] = $value;
   }
-  public function __get($key) {
+  public function __get($key)
+  {
     if (array_key_exists($key, $this->_properties)) {
       return $this->_properties[$key];
     }
+
     return null;
   }
 
-  public function __isset($key) {
+  public function __isset($key)
+  {
     return isset($this->_properties[$key]);
   }
 
-  public function __unset($key) {
+  public function __unset($key)
+  {
     unset($this->_properties[$key]);
   }
-  public function clear() {
+  public function clear()
+  {
     $this->_properties = array();
   }
-  public function toArray() {
+  public function toArray()
+  {
     return $this->_properties;
   }
 }
