@@ -199,7 +199,7 @@ class VendProduct extends VendObject
     public function save ()
     {
         // wipe current product and replace with new objects properties
-        $this->_properties = $this->vend->saveProduct($this)->toArray();
+        $this->vendObjectProperties = $this->vend->saveProduct($this)->toArray();
     }
     /**
      * get the inventory for the given outlet (default: all outlets)
@@ -209,10 +209,10 @@ class VendProduct extends VendObject
     public function getInventory($outlet = null)
     {
         $total = 0;
-        if (!isset($this->_properties['inventory']) || !is_array($this->_properties['inventory'])) {
+        if (!isset($this->vendObjectProperties['inventory']) || !is_array($this->vendObjectProperties['inventory'])) {
             return $total;
         }
-        foreach ($this->_properties['inventory'] as $o) {
+        foreach ($this->vendObjectProperties['inventory'] as $o) {
             if ($o->outlet_name == $outlet) {
                 return $o->count;
             }
@@ -228,14 +228,14 @@ class VendProduct extends VendObject
      */
     public function setInventory($count, $outlet = null)
     {
-        foreach ($this->_properties['inventory'] as $k => $o) {
+        foreach ($this->vendObjectProperties['inventory'] as $k => $o) {
             if ($o->outlet_name == $outlet || $outlet === null) {
-                $this->_properties['inventory'][$k]->count = $count;
+                $this->vendObjectProperties['inventory'][$k]->count = $count;
 
                 return;
             }
         }
-        $this->_properties['inventory'] = array(
+        $this->vendObjectProperties['inventory'] = array(
                 array(
                     "outlet_name" => (
                                       $outlet ? $outlet : ($this->vend ? $this->vend->default_outlet : 'Main Outlet')),
