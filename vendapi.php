@@ -45,7 +45,7 @@ class VendAPI
 
     public function getUsers()
     {
-        $result = $this->request('/api/users');
+        $result = $this->_request('/api/users');
 
         $users = array();
         foreach ($result->users as $user) {
@@ -56,7 +56,8 @@ class VendAPI
     }
     /**
      * Get all products
-     * @param  array $options .. optional
+     *
+     * @param array $options .. optional
      * @return array
      */
     public function getProducts($options = array())
@@ -72,7 +73,8 @@ class VendAPI
     }
     /**
      * Get all sales
-     * @param  array $options .. optional
+     *
+     * @param array $options .. optional
      * @return array
      */
     public function getSales($options = array())
@@ -88,6 +90,9 @@ class VendAPI
     }
     /**
      * Get a single product by id
+     * 
+     * @param string $id id of the product to get
+     * 
      * @return object
      */
     public function getProduct($id)
@@ -105,10 +110,20 @@ class VendAPI
         $result = $this->getSales(array('since' => $date));
         return $result;
     }
-
+    /**
+     * request a specific path from vend
+     * 
+     * @param string $path the absolute path of the requested item (ie /api/products )
+     * 
+     * @return object returned from vend
+     */
+    public function request($path) 
+    {
+        return $this->_request($path);
+    }
     private function apiGetProducts($path)
     {
-        $result = $this->request('/api/products'.$path);
+        $result = $this->_request('/api/products'.$path);
 
         $products = array();
         foreach ($result->products as $product) {
@@ -119,7 +134,7 @@ class VendAPI
     }
     private function apiGetSales($path)
     {
-        $result = $this->request('/api/register_sales'.$path);
+        $result = $this->_request('/api/register_sales'.$path);
 
         $sales = array();
         foreach ($result->register_sales as $s) {
@@ -130,18 +145,27 @@ class VendAPI
     }
     /**
      * Save vendproduct object to vend
-     * @param  object $productl
+     * @param object $product
      * @return object
      */
     public function saveProduct($product)
     {
-        $result = $this->request('/api/products', $product->toArray());
+        $result = $this->_request('/api/products', $product->toArray());
 
         return new VendProduct($result->product, $this);
     }
-
-    private function request($path, $data = null)
+    /**
+     * make request to the vend api
+     * 
+     * @param string  $path   the url to request
+     * @param array   $data   optional - if sending a post request, send fields through here
+     * @param boolean $depage do you want to grab and merge page results? .. will only depage on first page
+     * 
+     * @return object variable result based on request
+     */
+    private function _request($path, $data = null, $depage = true)
     {
+
         // TODO handle pager
         if ($data !== null) {
             // setup for a post'
@@ -176,6 +200,13 @@ class VendAPI
         $rawresult = curl_exec($this->curl);
         $result = json_decode($rawresult);
 
+        if ($depage && isset($result->pagination) && $result->pagination->page == 1) {
+            for ($i=2; $i <= $result->pagination->pages; $i++) { 
+                $paged_result = $this->_request(rtrim($path, '/').'/page/'.$i, $data, false);
+                $result = $this->_mergeObjects($paged_result, $result);
+            }
+        }
+
         if ($result && isset($result->error)) {
             throw new Exception($result->error .' : '. $result->details);
         }
@@ -187,6 +218,27 @@ class VendAPI
         }
 
         return $result;
+    }
+
+    /**
+     * merge two objects when depaginating results
+     * 
+     * @param object $obj1 original object to overwrite / merge
+     * @param object $obj2 secondary object
+     * 
+     * @return object       merged object
+     */
+    private function _mergeObjects($obj1, $obj2)
+    {
+        $obj3 = $obj1;
+        foreach ($obj2 as $k => $v) {
+            if (is_array($v) && isset($obj3->$k) && is_array($obj3->$k)) {
+                $obj3->$k = array_merge($obj3->$k, $v);
+            } else {
+                $obj3->$k = $v;
+            }
+        }
+        return $obj3;
     }
 }
 
