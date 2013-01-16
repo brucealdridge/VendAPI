@@ -200,6 +200,9 @@ class VendAPI
 
         $rawresult = curl_exec($this->curl);
         $result = json_decode($rawresult);
+        if ($result === null) {
+            throw new Exception ("Error: Recieved null result from API");
+        }
 
         if ($depage && isset($result->pagination) && $result->pagination->page == 1) {
             for ($i=2; $i <= $result->pagination->pages; $i++) {
