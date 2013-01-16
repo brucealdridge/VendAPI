@@ -12,6 +12,7 @@ class VendAPI
     private $curl_debug;
 
     public $debug = false;
+    public $automatic_depage = false;
 
     public $default_outlet = 'Main Outlet';
 
@@ -90,9 +91,9 @@ class VendAPI
     }
     /**
      * Get a single product by id
-     * 
+     *
      * @param string $id id of the product to get
-     * 
+     *
      * @return object
      */
     public function getProduct($id)
@@ -112,12 +113,12 @@ class VendAPI
     }
     /**
      * request a specific path from vend
-     * 
+     *
      * @param string $path the absolute path of the requested item (ie /api/products )
-     * 
+     *
      * @return object returned from vend
      */
-    public function request($path) 
+    public function request($path)
     {
         return $this->_request($path);
     }
@@ -156,16 +157,16 @@ class VendAPI
     }
     /**
      * make request to the vend api
-     * 
+     *
      * @param string  $path   the url to request
      * @param array   $data   optional - if sending a post request, send fields through here
      * @param boolean $depage do you want to grab and merge page results? .. will only depage on first page
-     * 
+     *
      * @return object variable result based on request
      */
-    private function _request($path, $data = null, $depage = true)
+    private function _request($path, $data = null, $depage = null)
     {
-
+        $depage = $depage === null ? $this->automatic_depage : $depage;
         // TODO handle pager
         if ($data !== null) {
             // setup for a post'
@@ -201,7 +202,7 @@ class VendAPI
         $result = json_decode($rawresult);
 
         if ($depage && isset($result->pagination) && $result->pagination->page == 1) {
-            for ($i=2; $i <= $result->pagination->pages; $i++) { 
+            for ($i=2; $i <= $result->pagination->pages; $i++) {
                 $paged_result = $this->_request(rtrim($path, '/').'/page/'.$i, $data, false);
                 $result = $this->_mergeObjects($paged_result, $result);
             }
@@ -222,10 +223,10 @@ class VendAPI
 
     /**
      * merge two objects when depaginating results
-     * 
+     *
      * @param object $obj1 original object to overwrite / merge
      * @param object $obj2 secondary object
-     * 
+     *
      * @return object       merged object
      */
     private function _mergeObjects($obj1, $obj2)
