@@ -125,7 +125,9 @@ class VendAPI
     private function apiGetProducts($path)
     {
         $result = $this->_request('/api/products'.$path);
-
+        if (!isset($result->products) || !is_array($result->products)) {
+            throw new \Exception ("Error: Unexpected result for request");
+        }
         $products = array();
         foreach ($result->products as $product) {
             $products[] = new VendProduct($product, $this);
@@ -136,7 +138,9 @@ class VendAPI
     private function apiGetSales($path)
     {
         $result = $this->_request('/api/register_sales'.$path);
-
+        if (!isset($result->register_sales) || !is_array($result->register_sales)) {
+            throw new \Exception ("Error: Unexpected result for request");
+        }
         $sales = array();
         foreach ($result->register_sales as $s) {
             $sales[] = new VendSale($s, $this);
@@ -201,7 +205,7 @@ class VendAPI
         $rawresult = curl_exec($this->curl);
         $result = json_decode($rawresult);
         if ($result === null) {
-            throw new Exception ("Error: Recieved null result from API");
+            throw new \Exception ("Error: Recieved null result from API");
         }
 
         if ($depage && isset($result->pagination) && $result->pagination->page == 1) {
