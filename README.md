@@ -36,3 +36,10 @@ if ($product->getInventory() == 0) {
 }
 ```
 
+### Debugging
+
+To debug make a call to the ```debug()``` function. 
+eg:
+```php
+$vend->debug(true);
+```

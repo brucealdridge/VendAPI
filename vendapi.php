@@ -1,48 +1,73 @@
 <?php
 
+/**
+ * VendAPI 
+ *
+ * An api for communicating with vend pos software - http://www.vendhq.com
+ *
+ * Requires phph5.3
+ *
+ * @package    VendAPI
+ * @author     Bruce Aldridge <bruce@incode.co.nz>
+ * @copyright  2012-2013 Bruce Aldridge
+ * @license    http://www.gnu.org/licenses/gpl-3.0.html GPL 3.0
+ * @link       https://github.com/brucealdridge/vendapi
+ */
+
 namespace VendAPI;
-class Exception extends \Exception {}
+
+class Exception extends \Exception
+{
+}
+
 
 class VendAPI
 {
     private $url;
-    private $curl;
 
     private $last_result_raw;
     private $last_result;
-    private $curl_debug;
 
-    public $debug = false;
+    private $requestr;
+
+    private $debug = false;
+    /**
+     * Request all pages of the results, looping through returning as a single result set
+     * @var boolean
+     */
     public $automatic_depage = false;
-
+    /**
+     * Default outlet to use for inventory, this shouldn't need to be changed
+     * @var string
+     */
     public $default_outlet = 'Main Outlet';
 
-    public function __construct($url, $username, $password)
+    /**
+     * @param string $url          url of your shop eg https://shopname.vendhq.com
+     * @param string $username     username for api
+     * @param string $password     password for api
+     * @param string $requestClass used for testing
+     */
+    public function __construct($url, $username, $password, $requestClass = '\VendAPI\VendRequest')
     {
         // trim trailing slash for niceness
         $this->url = rtrim($url, '/');
 
-        $this->curl = curl_init();
+        $this->requestr = new $requestClass($url, $username, $password);
 
-        // setup default curl options
-        $options = array(
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_TIMEOUT => 120,
-            CURLOPT_FAILONERROR => 1,
-            CURLOPT_HTTPAUTH => CURLAUTH_ANY,
-            CURLOPT_USERPWD => $username.':'.$password,
-            CURLOPT_HTTPHEADER,array('Accept: application/json','Content-Type: application/json'),
-        );
-        if ($this->debug) {
-            $options[CURLINFO_HEADER_OUT] = 1;
-        }
-
-        curl_setopt_array($this->curl, $options);
+    }
+    /**
+     * turn on debuging for this class and requester class
+     * @param  boolean $status
+     */
+    public function debug($status)
+    {
+        $this->requestr->setOpt('debug', $status);
+        $this->debug = true;
     }
     public function __destruct()
     {
-        // close curl nicely
-        curl_close($this->curl);
+
     }
 
     public function getUsers()
@@ -127,7 +152,7 @@ class VendAPI
     {
         $result = $this->_request('/api/products'.$path);
         if (!isset($result->products) || !is_array($result->products)) {
-            throw new Exception ("Error: Unexpected result for request");
+            throw new Exception("Error: Unexpected result for request");
         }
         $products = array();
         foreach ($result->products as $product) {
@@ -140,7 +165,7 @@ class VendAPI
     {
         $result = $this->_request('/api/register_sales'.$path);
         if (!isset($result->register_sales) || !is_array($result->register_sales)) {
-            throw new Exception ("Error: Unexpected result for request");
+            throw new Exception("Error: Unexpected result for request");
         }
         $sales = array();
         foreach ($result->register_sales as $s) {
@@ -175,38 +200,18 @@ class VendAPI
         // TODO handle pager
         if ($data !== null) {
             // setup for a post'
-            curl_setopt_array(
-                $this->curl,
-                array(
-                    CURLOPT_POST => 1,
-                    CURLOPT_POSTFIELDS => array('data' => json_encode($data)),
-                    CURLOPT_CUSTOMREQUEST => 'POST'
-                )
-            );
+
+            $rawresult = $this->requestr->post($path, array('data' => json_encode($data)));
+
         } else {
             // reset to a get
-            curl_setopt_array(
-                $this->curl,
-                array(
-                    CURLOPT_HTTPGET => 1,
-                    CURLOPT_POSTFIELDS => null,
-                    CURLOPT_CUSTOMREQUEST => 'GET'
-                )
-            );
+            $rawresult = $this->requestr->get($path);
 
         }
-        if ($this->debug) {
-            curl_setopt($this->curl, CURLOPT_VERBOSE, true);
-        }
 
-        curl_setopt($this->curl, CURLOPT_URL, $this->url.$path);
-        //'api/register_sales/since/'.'2012-09-12 09:05:00');
-        //curl_setopt($ch,CURLOPT_URL, $url.'api/stock_takes');
-
-        $rawresult = curl_exec($this->curl);
         $result = json_decode($rawresult);
         if ($result === null) {
-            throw new Exception ("Error: Recieved null result from API");
+            throw new Exception("Error: Recieved null result from API");
         }
 
         if ($depage && isset($result->pagination) && $result->pagination->page == 1) {
@@ -222,7 +227,6 @@ class VendAPI
 
         if ($this->debug) {
             $this->last_result_raw = $rawresult;
-            $this->curl_debug = curl_getinfo($this->curl);
             $this->last_result = $result;
         }
 
@@ -248,6 +252,93 @@ class VendAPI
             }
         }
         return $obj3;
+    }
+}
+
+class VendRequest
+{
+    private $curl;
+    private $curl_debug;
+    private $debug;
+
+    public function __construct($url, $username, $password)
+    {
+        $this->curl = curl_init();
+
+        $this->url = $url;
+
+        // setup default curl options
+        $options = array(
+            CURLOPT_RETURNTRANSFER => 1,
+            CURLOPT_TIMEOUT => 120,
+            CURLOPT_FAILONERROR => 1,
+            CURLOPT_HTTPAUTH => CURLAUTH_ANY,
+            CURLOPT_USERPWD => $username.':'.$password,
+            CURLOPT_HTTPHEADER,array('Accept: application/json','Content-Type: application/json'),
+        );
+        if ($this->debug) {
+            $options[CURLINFO_HEADER_OUT] = 1;
+        }
+
+        $this->setOpt($options);
+    }
+    public function __destruct()
+    {
+        // close curl nicely
+        curl_close($this->curl);
+    }
+    /**
+     * set option for request, also accepts an array of key/value pairs for the first param
+     * @param string $name  option name to set
+     * @param misc $value value
+     */
+    public function setOpt($name, $value = false)
+    {
+        if (is_array($name)) {
+            curl_setopt_array($this->curl, $name);
+            return;
+        }
+        if ($name == 'debug') {
+            curl_setopt($this->curl, CURLINFO_HEADER_OUT, (int) $value);
+            curl_setopt($this->curl, CURLOPT_VERBOSE, (boolean) $value);
+            $this->debug = $value;
+        } else {
+            curl_setopt($this->curl, $name, $value);
+        }
+    }
+    public function post($path, $fields)
+    {
+        $this->setOpt(
+            array(
+                CURLOPT_POST => 1,
+                CURLOPT_POSTFIELDS => $fields,
+                CURLOPT_CUSTOMREQUEST => 'POST'
+            )
+        );
+        return $this->_request($path);
+    }
+    public function get($path)
+    {
+        $this->setOpt(
+            array(
+                CURLOPT_HTTPGET => 1,
+                CURLOPT_POSTFIELDS => null,
+                CURLOPT_CUSTOMREQUEST => 'GET'
+            )
+        );
+        return $this->_request($path);
+    }
+    private function _request($path)
+    {
+        $this->setOpt(CURLOPT_URL, $this->url.$path);
+        //'api/register_sales/since/'.'2012-09-12 09:05:00');
+        //curl_setopt($ch,CURLOPT_URL, $url.'api/stock_takes');
+
+        $result = curl_exec($this->curl);
+        if ($this->debug) {
+            $this->curl_debug = curl_getinfo($this->curl);
+        }
+        return $result;
     }
 }
 
