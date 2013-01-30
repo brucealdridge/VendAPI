@@ -8,7 +8,7 @@ This is a basic php class for using the api for vend (vendhq.com) Its at a reall
 
 ```php
 require 'vendapi.php';
-$vend = new vendapi('https://shopname.vendhq.com','username','password');
+$vend = new VendAPI\VendAPI('https://shopname.vendhq.com','username','password');
 $products = $vend->getProducts();
 ```
 
