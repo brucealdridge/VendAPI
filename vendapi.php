@@ -70,16 +70,16 @@ class VendAPI
 
     }
 
-    public function getUsers()
+    public function getCustomers()
     {
-        $result = $this->_request('/api/users');
+        $result = $this->_request('/api/customers');
 
-        $users = array();
-        foreach ($result->users as $user) {
-            $users[] = new VendUser($user, $this);
+        $customers = array();
+        foreach ($result->customers as $customer) {
+            $customers[] = new VendCustomer($customer, $this);
         }
 
-        return $users;
+        return $customers;
     }
     /**
      * Get all products
@@ -186,20 +186,41 @@ class VendAPI
         return new VendProduct($result->product, $this);
     }
     /**
+     * Save customer object to vend
+     * @param object $cust
+     * @return object
+     */
+    public function saveCustomer($cust)
+    {
+        $result = $this->_request('/api/customers', $cust->toArray());
+
+        return new VendCustomer($result->customer, $this);
+    }
+    /**
+     * Save sale object to vend
+     * @param object $sale
+     * @return object
+     */
+    public function saveSale($sale)
+    {
+        $result = $this->_request('/api/register_sales', $sale->toArray());
+
+        return new VendSale($result->register_sale, $this);
+    }    
+    /**
      * make request to the vend api
-     *
+     * 
      * @param string  $path   the url to request
      * @param array   $data   optional - if sending a post request, send fields through here
      * @param boolean $depage do you want to grab and merge page results? .. will only depage on first page
-     *
+     * 
      * @return object variable result based on request
      */
     private function _request($path, $data = null, $depage = null)
     {
         $depage = $depage === null ? $this->automatic_depage : $depage;
-        // TODO handle pager
         if ($data !== null) {
-            // setup for a post'
+            // setup for a post
 
             $rawresult = $this->requestr->post($path, array('data' => json_encode($data)));
 
@@ -398,9 +419,27 @@ class VendProduct extends VendObject
 }
 class VendSale extends VendObject
 {
+    /**
+     * will create/update the user using the vend api and this object will be updated
+     * @return null
+     */
+    public function save ()
+    {
+        // wipe current user and replace with new objects properties
+        $this->vendObjectProperties = $this->vend->saveSale($this)->toArray();
+    }
 }
-class VendUser extends VendObject
+class VendCustomer extends VendObject
 {
+    /**
+     * will create/update the user using the vend api and this object will be updated
+     * @return null
+     */
+    public function save ()
+    {
+        // wipe current user and replace with new objects properties
+        $this->vendObjectProperties = $this->vend->saveCustomer($this)->toArray();
+    }
 }
 abstract class VendObject
 {
