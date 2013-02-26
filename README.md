@@ -18,13 +18,43 @@ $products = $vend->getProducts();
 $vend->automatic_depage = true;
 $products = $vend->getProducts();
 ```
+### Add a Product
+
+```php
+$donut = $sale = new \VendAPI\VendProduct(null, $vendapi)
+$donut->name = 'Donut w/ Sprinkles';
+$donut->price = 4.95;
+$donut->save();
+echo 'Donut product id is '.$donut->id;
+```
+
+### Add a Sale
+
+```php
+$sale = new \VendAPI\VendSale(null, $vend);
+$sale->register_id = $register_id;
+$sale->customer_id = $customer_id;
+$sale->status = 'OPEN';
+$products = array();
+foreach ($items as $item) {
+    $products[] = array(
+        'product_id' => $item->product_id,
+        'quantity' => $item->quantity,
+        'price' => $item->price
+    );
+}
+$sale->register_sale_products = $products;
+$sale->save();
+
+echo "Created new order with id: ".$sale->id;
+```
 
 ### Other cool stuff
 
 ```php
 $vend->getProducts(array('active' => '1', 'since' => '2012-09-15 20:55:00'));
 ```
-*NB* Check the vend api docs for support search fields. I had issues with the vend api when passing in `array('source_id'=>'hot-coffee')` .. instead of the expected no matches, it returned all matches.
+*NB* Check the vend api docs for supported search fields. If a search field isn't supported all results will be returned rather than the zero I was expecting
 
 ```php
 $coffee = $vend->getProduct('42c2ccc4-fbf4-11e1-b195-4040782fde00');
