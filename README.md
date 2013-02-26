@@ -21,7 +21,7 @@ $products = $vend->getProducts();
 ### Add a Product
 
 ```php
-$donut = $sale = new \VendAPI\VendProduct(null, $vendapi)
+$donut = $sale = new \VendAPI\VendProduct(null, $vend)
 $donut->name = 'Donut w/ Sprinkles';
 $donut->price = 4.95;
 $donut->save();
