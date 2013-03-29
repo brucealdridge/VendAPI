@@ -5,7 +5,7 @@
     "type": "library",
     "description": "Vend API class",
     "keywords": ["shopping","shop", "e-commerce"],
-    "homepage": "http://github.com/Spaaza/vendapi",
+    "homepage": "http://github.com/brucealdridge/vendapi",
     "license": "MIT",
 
     "authors": [
