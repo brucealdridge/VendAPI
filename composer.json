@@ -1,0 +1,33 @@
+{
+    "name": "vendapi/vendapi",
+    "version": "1.0.0",
+
+    "type": "library",
+    "description": "Vend API class",
+    "keywords": ["shopping","shop", "e-commerce"],
+    "homepage": "http://github.com/Spaaza/vendapi",
+    "license": "MIT",
+
+    "authors": [
+        {
+            "name": "Bruce Aldridge",
+            "email": "bruce@incode.co.nz",
+            "role": "Developer"
+        },
+        {
+            "name": "Arjan Scherpenisse",
+            "email": "arjan@scherpenisse.net",
+            "role": "Developer"
+        }
+    ],
+
+    "require": {
+        "php": ">=5.3.0"
+    },
+    
+    "autoload": {
+        "psr-0": {
+            "VendAPI": "src"
+        }
+    }
+}

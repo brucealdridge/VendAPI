@@ -1,7 +1,10 @@
 Vend API class
 ==============
 
-This is a basic php class for using the api for vend (vendhq.com) Its at a really basic state but it does exactly what I need at the moment. Feel free to add any issues/bugs and send me any pull requests.
+This is a basic PHP class for using the API for Vend (vendhq.com). It
+is at a really basic state but it does exactly what I need at the
+moment. Feel free to add any issues/bugs and send me any pull
+requests.
 
 
 ### Basic Usage
