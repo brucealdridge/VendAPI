@@ -1,7 +1,10 @@
 Vend API class
 ==============
 
-This is a basic php class for using the api for vend (vendhq.com) Its at a really basic state but it does exactly what I need at the moment. Feel free to add any issues/bugs and send me any pull requests.
+This is a basic PHP class for using the API for Vend (vendhq.com). It
+is at a really basic state but it does exactly what I need at the
+moment. Feel free to add any issues/bugs and send me any pull
+requests.
 
 
 ### Basic Usage
@@ -21,9 +24,11 @@ $products = $vend->getProducts();
 ### Add a Product
 
 ```php
-$donut = $sale = new \VendAPI\VendProduct(null, $vend)
+$donut = $sale = new \VendAPI\VendProduct(null, $vend);
+$donut->handle = 'donut01';
+$donut->sku = '343434343';
+$donut->retail_price = 2.99;
 $donut->name = 'Donut w/ Sprinkles';
-$donut->price = 4.95;
 $donut->save();
 echo 'Donut product id is '.$donut->id;
 ```
