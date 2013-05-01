@@ -46,7 +46,9 @@ class VendRequest
     public function __destruct()
     {
         // close curl nicely
-        curl_close($this->curl);
+        if (is_resource($this->curl)) {
+            curl_close($this->curl);
+        }
     }
     /**
      * set option for request, also accepts an array of key/value pairs for the first param
