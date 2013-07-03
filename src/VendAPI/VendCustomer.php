@@ -5,7 +5,7 @@
  *
  * An api for communicating with vend pos software - http://www.vendhq.com
  *
- * Requires phph5.3
+ * Requires php 5.3
  *
  * @package    VendAPI
  * @author     Bruce Aldridge <bruce@incode.co.nz>

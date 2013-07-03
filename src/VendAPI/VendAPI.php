@@ -5,7 +5,7 @@
  *
  * An api for communicating with vend pos software - http://www.vendhq.com
  *
- * Requires phph5.3
+ * Requires php 5.3
  *
  * @package    VendAPI
  * @author     Bruce Aldridge <bruce@incode.co.nz>
@@ -16,6 +16,12 @@
 
 namespace VendAPI;
 
+spl_autoload_register(function ($class) {
+    list($namespace, $classname) = explode('\\', $class);
+    if ($namespace == 'VendAPI') {
+        include rtrim(__DIR__, '/').'/'.$classname . '.php';
+    }
+});
 
 class VendAPI
 {
@@ -56,7 +62,7 @@ class VendAPI
      * turn on debuging for this class and requester class
      * @param  boolean $status
      */
-    public function debug($status)
+    public function debug($status = true)
     {
         $this->requestr->setOpt('debug', $status);
         $this->debug = true;
@@ -66,16 +72,16 @@ class VendAPI
 
     }
 
-    public function getCustomers()
+    public function getCustomers($options = array())
     {
-        $result = $this->_request('/api/customers');
-
-        $customers = array();
-        foreach ($result->customers as $customer) {
-            $customers[] = new VendCustomer($customer, $this);
+        $path = '';
+        if (count($options)) {
+            foreach ($options as $k => $v) {
+                $path .= '/'.$k.'/'.$v;
+            }
         }
 
-        return $customers;
+        return $this->apiGetCustomers($path);
     }
     /**
      * Get all products
@@ -123,6 +129,30 @@ class VendAPI
         $result = $this->getProducts(array('id' => $id));
         return is_array($result) && isset($result[0]) ? $result[0] : new VendProduct(null, $this);
     }
+    /**
+     * Get a single customer by id
+     * 
+     * @param string $id id of the customer to get
+     * 
+     * @return object
+     */
+    public function getCustomer($id)
+    {
+        $result = $this->getCustomers(array('id' => $id));
+        return is_array($result) && isset($result[0]) ? $result[0] : new VendCustomer(null, $this);
+    }
+    /**
+     * Get a single sale by id
+     * 
+     * @param string $id id of the sale to get
+     * 
+     * @return object
+     */
+    public function getSale($id)
+    {
+        $result = $this->getSales(array('id' => $id));
+        return is_array($result) && isset($result[0]) ? $result[0] : new VendSale(null, $this);
+    }    
     public function getProductsSince($date)
     {
         $result = $this->getProducts(array('since' => $date));
@@ -156,6 +186,19 @@ class VendAPI
         }
 
         return $products;
+    }
+    private function apiGetCustomers($path)
+    {
+        $result = $this->_request('/api/customers'.$path);
+        if (!isset($result->customers) || !is_array($result->customers)) {
+            throw new Exception("Error: Unexpected result for request");
+        }
+        $customers = array();
+        foreach ($result->customers as $cust) {
+            $customers[] = new VendCustomer($cust, $this);
+        }
+
+        return $customers;
     }
     private function apiGetSales($path)
     {

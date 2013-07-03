@@ -5,7 +5,7 @@
  *
  * An api for communicating with vend pos software - http://www.vendhq.com
  *
- * Requires phph5.3
+ * Requires php 5.3
  *
  * @package    VendAPI
  * @author     Bruce Aldridge <bruce@incode.co.nz>
@@ -36,6 +36,7 @@ class VendRequest
             CURLOPT_HTTPAUTH => CURLAUTH_ANY,
             CURLOPT_USERPWD => $username.':'.$password,
             CURLOPT_HTTPHEADER,array('Accept: application/json','Content-Type: application/json'),
+            CURLOPT_HEADER => 1
         );
         if ($this->debug) {
             $options[CURLINFO_HEADER_OUT] = 1;
@@ -78,7 +79,8 @@ class VendRequest
                 CURLOPT_CUSTOMREQUEST => 'POST'
             )
         );
-        return $this->_request($path);
+        $this->posted = $fields;
+        return $this->_request($path, 'post');
     }
     public function get($path)
     {
@@ -89,18 +91,32 @@ class VendRequest
                 CURLOPT_CUSTOMREQUEST => 'GET'
             )
         );
-        return $this->_request($path);
+        return $this->_request($path, 'get');
     }
-    private function _request($path)
+    private function _request($path, $type)
     {
         $this->setOpt(CURLOPT_URL, $this->url.$path);
-        //'api/register_sales/since/'.'2012-09-12 09:05:00');
-        //curl_setopt($ch,CURLOPT_URL, $url.'api/stock_takes');
 
-        $result = curl_exec($this->curl);
+        $response = curl_exec($this->curl);
+
+        $header_size = curl_getinfo($this->curl, CURLINFO_HEADER_SIZE);
+        $header = substr($response, 0, $header_size);
+        $body = substr($response, $header_size);
+
         if ($this->debug) {
             $this->curl_debug = curl_getinfo($this->curl);
+            $head = $foot = "\n";
+            if (php_sapi_name() !== 'cli') {
+                $head = '<pre>';
+                $foot = '</pre>';
+            }
+
+            echo $head,$this->curl_debug['request_header'];
+            echo $type == 'post' ? http_build_query($this->posted) : '';
+            echo $foot;
+
+            echo $head,$header,$foot;
         }
-        return $result;
+        return $body;
     }
 }
