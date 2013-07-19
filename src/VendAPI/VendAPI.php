@@ -1,7 +1,7 @@
 <?php
 
 /**
- * VendAPI 
+ * VendAPI
  *
  * An api for communicating with vend pos software - http://www.vendhq.com
  *
@@ -131,9 +131,9 @@ class VendAPI
     }
     /**
      * Get a single customer by id
-     * 
+     *
      * @param string $id id of the customer to get
-     * 
+     *
      * @return object
      */
     public function getCustomer($id)
@@ -143,16 +143,16 @@ class VendAPI
     }
     /**
      * Get a single sale by id
-     * 
+     *
      * @param string $id id of the sale to get
-     * 
+     *
      * @return object
      */
     public function getSale($id)
     {
         $result = $this->apiGetSales('/'.$id);
         return is_array($result) && isset($result[0]) ? $result[0] : new VendSale(null, $this);
-    }    
+    }
     public function getProductsSince($date)
     {
         $result = $this->getProducts(array('since' => $date));
@@ -231,7 +231,7 @@ class VendAPI
      */
     public function saveCustomer($cust)
     {
-        $result = $this->_request('/api/customers', $cust->toArray());
+        $result = $this->_request('/api/customers', $cust->saveArray());
 
         return new VendCustomer($result->customer, $this);
     }
@@ -245,14 +245,14 @@ class VendAPI
         $result = $this->_request('/api/register_sales', $sale->toArray());
 
         return new VendSale($result->register_sale, $this);
-    }    
+    }
     /**
      * make request to the vend api
-     * 
+     *
      * @param string  $path   the url to request
      * @param array   $data   optional - if sending a post request, send fields through here
      * @param boolean $depage do you want to grab and merge page results? .. will only depage on first page
-     * 
+     *
      * @return object variable result based on request
      */
     private function _request($path, $data = null, $depage = null)

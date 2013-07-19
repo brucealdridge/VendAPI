@@ -1,7 +1,7 @@
 <?php
 
 /**
- * VendAPI 
+ * VendAPI
  *
  * An api for communicating with vend pos software - http://www.vendhq.com
  *
@@ -20,6 +20,7 @@ abstract class VendObject
 {
     protected $vend;
     protected $vendObjectProperties = array();
+    protected $initialObjectProperties = array();
 
     public function __construct($data = null, &$v = null)
     {
@@ -28,6 +29,7 @@ abstract class VendObject
             foreach ($data as $key => $value) {
                 $this->vendObjectProperties[$key] = $value;
             }
+            $this->initialObjectProperties = $this->vendObjectProperties;
         }
     }
 
@@ -60,5 +62,20 @@ abstract class VendObject
     public function toArray()
     {
         return $this->vendObjectProperties;
+    }
+    /**
+     * will return an array of all changed properties and the id
+     * return array
+     */
+    public function saveArray()
+    {
+        // only output the changed properties
+        $output = $this->vendObjectProperties;
+        foreach($output as $key => $value) {
+            if ($key != 'id' && isset($this->initialObjectProperties[$key]) && $value == $this->initialObjectProperties[$key]) {
+                unset($output[$key]);
+            }
+        }
+        return $output;
     }
 }
