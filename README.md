@@ -24,7 +24,7 @@ $products = $vend->getProducts();
 ### Add a Product
 
 ```php
-$donut = $sale = new \VendAPI\VendProduct(null, $vend);
+$donut = new \VendAPI\VendProduct(null, $vend);
 $donut->handle = 'donut01';
 $donut->sku = '343434343';
 $donut->retail_price = 2.99;
@@ -73,7 +73,7 @@ if ($product->getInventory() == 0) {
 
 ### Debugging
 
-To debug make a call to the ```debug()``` function. 
+To debug make a call to the ```debug()``` function.
 eg:
 ```php
 $vend->debug(true);

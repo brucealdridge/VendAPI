@@ -6,7 +6,7 @@ $vend = new VendAPI\VendAPI('https://shopname.vendhq.com','username','password')
 
 $products = $vend->getProducts();
 
-$donut = $sale = new \VendAPI\VendProduct(null, $vend);
+$donut = new \VendAPI\VendProduct(null, $vend);
 $donut->handle = 'donut01';
 $donut->sku = '343434343';
 $donut->retail_price = 2.99;
