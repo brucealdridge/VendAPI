@@ -150,7 +150,7 @@ class VendAPI
      */
     public function getSale($id)
     {
-        $result = $this->getSales(array('id' => $id));
+        $result = $this->apiGetSales('/'.$id);
         return is_array($result) && isset($result[0]) ? $result[0] : new VendSale(null, $this);
     }    
     public function getProductsSince($date)
@@ -261,12 +261,11 @@ class VendAPI
         if ($data !== null) {
             // setup for a post
 
-            $rawresult = $this->requestr->post($path, array('data' => json_encode($data)));
+            $rawresult = $this->requestr->post($path, json_encode($data));
 
         } else {
             // reset to a get
             $rawresult = $this->requestr->get($path);
-
         }
 
         $result = json_decode($rawresult);
