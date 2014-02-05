@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <title>VendAPI by brucealdridge</title>
+  </head>
+
+  <body>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>VendAPI</h1>
+          <h2>PHP class for accessing the API for Vend</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/brucealdridge/VendAPI/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/brucealdridge/VendAPI/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/brucealdridge/VendAPI" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a name="vend-api-class" class="anchor" href="#vend-api-class"><span class="octicon octicon-link"></span></a>Vend API class</h1>
+
+<p>This is a basic PHP class for using the API for Vend (vendhq.com). It
+is at a really basic state but it does exactly what I need at the
+moment. Feel free to add any issues/bugs and send me any pull
+requests.
+Or contact <a href="http://incode.co.nz">incode</a> for support</p>
+
+<h3>
+<a name="basic-usage" class="anchor" href="#basic-usage"><span class="octicon octicon-link"></span></a>Basic Usage</h3>
+
+<div class="highlight highlight-php"><pre><span class="k">require</span> <span class="s1">'vendapi.php'</span><span class="p">;</span>
+<span class="nv">$vend</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">VendAPI\VendAPI</span><span class="p">(</span><span class="s1">'https://shopname.vendhq.com'</span><span class="p">,</span><span class="s1">'username'</span><span class="p">,</span><span class="s1">'password'</span><span class="p">);</span>
+<span class="nv">$products</span> <span class="o">=</span> <span class="nv">$vend</span><span class="o">-&gt;</span><span class="na">getProducts</span><span class="p">();</span>
+</pre></div>
+
+<p><em>NB</em> this will only grab the first 20 or so results. To grab all results set <code>$vend-&gt;automatic_depage</code> to <code>true</code></p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$vend</span><span class="o">-&gt;</span><span class="na">automatic_depage</span> <span class="o">=</span> <span class="k">true</span><span class="p">;</span>
+<span class="nv">$products</span> <span class="o">=</span> <span class="nv">$vend</span><span class="o">-&gt;</span><span class="na">getProducts</span><span class="p">();</span>
+</pre></div>
+
+<h3>
+<a name="add-a-product" class="anchor" href="#add-a-product"><span class="octicon octicon-link"></span></a>Add a Product</h3>
+
+<div class="highlight highlight-php"><pre><span class="nv">$donut</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\VendAPI\VendProduct</span><span class="p">(</span><span class="k">null</span><span class="p">,</span> <span class="nv">$vend</span><span class="p">);</span>
+<span class="nv">$donut</span><span class="o">-&gt;</span><span class="na">handle</span> <span class="o">=</span> <span class="s1">'donut01'</span><span class="p">;</span>
+<span class="nv">$donut</span><span class="o">-&gt;</span><span class="na">sku</span> <span class="o">=</span> <span class="s1">'343434343'</span><span class="p">;</span>
+<span class="nv">$donut</span><span class="o">-&gt;</span><span class="na">retail_price</span> <span class="o">=</span> <span class="mf">2.99</span><span class="p">;</span>
+<span class="nv">$donut</span><span class="o">-&gt;</span><span class="na">name</span> <span class="o">=</span> <span class="s1">'Donut w/ Sprinkles'</span><span class="p">;</span>
+<span class="nv">$donut</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
+<span class="k">echo</span> <span class="s1">'Donut product id is '</span><span class="o">.</span><span class="nv">$donut</span><span class="o">-&gt;</span><span class="na">id</span><span class="p">;</span>
+</pre></div>
+
+<h3>
+<a name="add-a-sale" class="anchor" href="#add-a-sale"><span class="octicon octicon-link"></span></a>Add a Sale</h3>
+
+<div class="highlight highlight-php"><pre><span class="nv">$sale</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">\VendAPI\VendSale</span><span class="p">(</span><span class="k">null</span><span class="p">,</span> <span class="nv">$vend</span><span class="p">);</span>
+<span class="nv">$sale</span><span class="o">-&gt;</span><span class="na">register_id</span> <span class="o">=</span> <span class="nv">$register_id</span><span class="p">;</span>
+<span class="nv">$sale</span><span class="o">-&gt;</span><span class="na">customer_id</span> <span class="o">=</span> <span class="nv">$customer_id</span><span class="p">;</span>
+<span class="nv">$sale</span><span class="o">-&gt;</span><span class="na">status</span> <span class="o">=</span> <span class="s1">'OPEN'</span><span class="p">;</span>
+<span class="nv">$products</span> <span class="o">=</span> <span class="k">array</span><span class="p">();</span>
+<span class="k">foreach</span> <span class="p">(</span><span class="nv">$items</span> <span class="k">as</span> <span class="nv">$item</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nv">$products</span><span class="p">[]</span> <span class="o">=</span> <span class="k">array</span><span class="p">(</span>
+        <span class="s1">'product_id'</span> <span class="o">=&gt;</span> <span class="nv">$item</span><span class="o">-&gt;</span><span class="na">product_id</span><span class="p">,</span>
+        <span class="s1">'quantity'</span> <span class="o">=&gt;</span> <span class="nv">$item</span><span class="o">-&gt;</span><span class="na">quantity</span><span class="p">,</span>
+        <span class="s1">'price'</span> <span class="o">=&gt;</span> <span class="nv">$item</span><span class="o">-&gt;</span><span class="na">price</span>
+    <span class="p">);</span>
+<span class="p">}</span>
+<span class="nv">$sale</span><span class="o">-&gt;</span><span class="na">register_sale_products</span> <span class="o">=</span> <span class="nv">$products</span><span class="p">;</span>
+<span class="nv">$sale</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
+
+<span class="k">echo</span> <span class="s2">"Created new order with id: "</span><span class="o">.</span><span class="nv">$sale</span><span class="o">-&gt;</span><span class="na">id</span><span class="p">;</span>
+</pre></div>
+
+<h3>
+<a name="other-cool-stuff" class="anchor" href="#other-cool-stuff"><span class="octicon octicon-link"></span></a>Other cool stuff</h3>
+
+<div class="highlight highlight-php"><pre><span class="nv">$vend</span><span class="o">-&gt;</span><span class="na">getProducts</span><span class="p">(</span><span class="k">array</span><span class="p">(</span><span class="s1">'active'</span> <span class="o">=&gt;</span> <span class="s1">'1'</span><span class="p">,</span> <span class="s1">'since'</span> <span class="o">=&gt;</span> <span class="s1">'2012-09-15 20:55:00'</span><span class="p">));</span>
+</pre></div>
+
+<p><em>NB</em> Check the vend api docs for supported search fields. If a search field isn't supported all results will be returned rather than the zero I was expecting</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$coffee</span> <span class="o">=</span> <span class="nv">$vend</span><span class="o">-&gt;</span><span class="na">getProduct</span><span class="p">(</span><span class="s1">'42c2ccc4-fbf4-11e1-b195-4040782fde00'</span><span class="p">);</span>
+<span class="k">echo</span> <span class="nv">$coffee</span><span class="o">-&gt;</span><span class="na">name</span><span class="p">;</span> <span class="c1">// outputs "Hot Coffee"</span>
+<span class="k">if</span> <span class="p">(</span><span class="nv">$product</span><span class="o">-&gt;</span><span class="na">getInventory</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nv">$coffee</span><span class="o">-&gt;</span><span class="na">setInventory</span><span class="p">(</span><span class="mi">10</span><span class="p">);</span>
+  <span class="nv">$coffee</span><span class="o">-&gt;</span><span class="na">name</span> <span class="o">=</span> <span class="s1">'Iced Coffee'</span><span class="p">;</span>
+  <span class="nv">$coffee</span><span class="o">-&gt;</span><span class="na">save</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+<h3>
+<a name="debugging" class="anchor" href="#debugging"><span class="octicon octicon-link"></span></a>Debugging</h3>
+
+<p>To debug make a call to the <code>debug()</code> function.
+eg:</p>
+
+<div class="highlight highlight-php"><pre><span class="nv">$vend</span><span class="o">-&gt;</span><span class="na">debug</span><span class="p">(</span><span class="k">true</span><span class="p">);</span>
+</pre></div>
+        </section>
+
+        <footer>
+          VendAPI is maintained by <a href="https://github.com/brucealdridge">brucealdridge</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
+    </div>
+  </body>
+</html>
