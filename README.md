@@ -1,11 +1,7 @@
 Vend API class
 ==============
 
-This is a basic PHP class for using the API for Vend (vendhq.com). It
-is at a really basic state but it does exactly what I need at the
-moment. Feel free to add any issues/bugs and send me any pull
-requests.
-
+This is a fork of Bruce Aldridge's Vend API. This fork includes the ability to DELETE products from Vend.
 
 ### Basic Usage
 
