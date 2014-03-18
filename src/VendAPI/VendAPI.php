@@ -138,7 +138,6 @@ class VendAPI
      */
     public function deleteProduct($id)
     {
-        $result = $this->deleteProducts(array('id' => $id));
         return $this->apiDeleteProduct('/'.$id);
     }
     /**
