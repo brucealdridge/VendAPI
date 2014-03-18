@@ -130,6 +130,18 @@ class VendAPI
         return is_array($result) && isset($result[0]) ? $result[0] : new VendProduct(null, $this);
     }
     /**
+     * Get a single product by id
+     *
+     * @param string $id id of the product to get
+     *
+     * @return object
+     */
+    public function deleteProduct($id)
+    {
+        $result = $this->deleteProducts(array('id' => $id));
+        return $this->apiDeleteProduct('/'.$id);
+    }
+    /**
      * Get a single customer by id
      *
      * @param string $id id of the customer to get
@@ -186,6 +198,11 @@ class VendAPI
         }
 
         return $products;
+    }
+	private function apiDeleteProduct($path)
+    {
+        $result = $this->_request('/api/products'.$path, null, null, true);
+        return $result;
     }
     private function apiGetCustomers($path)
     {
@@ -246,23 +263,25 @@ class VendAPI
 
         return new VendSale($result->register_sale, $this);
     }
+
     /**
      * make request to the vend api
      *
      * @param string  $path   the url to request
      * @param array   $data   optional - if sending a post request, send fields through here
      * @param boolean $depage do you want to grab and merge page results? .. will only depage on first page
+     * @param boolean $delete used for delete requests, set it to true if you want to delete the given product id
      *
      * @return object variable result based on request
      */
-    private function _request($path, $data = null, $depage = null)
+    private function _request($path, $data = null, $depage = null, $delete = null)
     {
         $depage = $depage === null ? $this->automatic_depage : $depage;
         if ($data !== null) {
             // setup for a post
-
             $rawresult = $this->requestr->post($path, json_encode($data));
-
+        } else if($delete !== null) {
+            $rawresult = $this->requestr->delete($path);
         } else {
             // reset to a get
             $rawresult = $this->requestr->get($path);
