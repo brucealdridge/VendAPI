@@ -7,10 +7,38 @@ moment. Feel free to add any issues/bugs and send me any pull
 requests.
 
 
-### Basic Usage
+## Installation and Basic Usage
+
+### With Composer
+
+The easiest way to install Vend API is via [composer](http://getcomposer.org/). Create the following `composer.json` file and run the `php composer.phar install` command to install it.
+
+```json
+{
+    "require": {
+        "vendapi/vendapi": "dev-master"
+    }
+}
+```
+
+### Without Composer
+
+
+Why are you not using [composer](http://getcomposer.org/)? Download and extract the [zip file](https://github.com/brucealdridge/VendAPI/archive/master.zip) from the repo into your project path somewhere.
 
 ```php
-require 'vendapi.php';
+<?php
+require 'path/to/src/VendApi/VendApi.php';
+
+$vend = new VendAPI\VendAPI('https://shopname.vendhq.com','username','password');
+$products = $vend->getProducts();
+```
+
+## API Usage
+
+### Get Products
+
+```php
 $vend = new VendAPI\VendAPI('https://shopname.vendhq.com','username','password');
 $products = $vend->getProducts();
 ```
@@ -71,7 +99,7 @@ if ($product->getInventory() == 0) {
 }
 ```
 
-### Debugging
+## Debugging
 
 To debug make a call to the ```debug()``` function.
 eg:
