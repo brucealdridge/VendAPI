@@ -9,7 +9,7 @@
  *
  * @package    VendAPI
  * @author     Bruce Aldridge <bruce@incode.co.nz>
- * @copyright  2012-2013 Bruce Aldridge
+ * @copyright  2012-2015 Bruce Aldridge
  * @license    http://www.gnu.org/licenses/gpl-3.0.html GPL 3.0
  * @link       https://github.com/brucealdridge/vendapi
  */
@@ -46,16 +46,16 @@ class VendAPI
 
     /**
      * @param string $url          url of your shop eg https://shopname.vendhq.com
-     * @param string $username     username for api
-     * @param string $password     password for api
+     * @param string $tokenType    tokenType for api
+     * @param string $accessToken  accessToken for api
      * @param string $requestClass used for testing
      */
-    public function __construct($url, $username, $password, $requestClass = '\VendAPI\VendRequest')
+    public function __construct($url, $tokenType, $accessToken, $requestClass = '\VendAPI\VendRequest')
     {
         // trim trailing slash for niceness
         $this->url = rtrim($url, '/');
 
-        $this->requestr = new $requestClass($url, $username, $password);
+        $this->requestr = new $requestClass($url, $tokenType, $accessToken);
 
     }
     /**

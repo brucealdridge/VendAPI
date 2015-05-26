@@ -6,6 +6,8 @@ is at a really basic state but it does exactly what I need at the
 moment. Feel free to add any issues/bugs and send me any pull
 requests.
 
+NB: Updated to use oauth for July 2015 deprecation, if you have sample code for handling oauth authorization and token refreshes submit a pull requst
+
 
 ## Installation and Basic Usage
 
@@ -30,7 +32,7 @@ Why are you not using [composer](http://getcomposer.org/)? Download and extract 
 <?php
 require 'path/to/src/VendApi/VendApi.php';
 
-$vend = new VendAPI\VendAPI('https://shopname.vendhq.com','username','password');
+$vend = new VendAPI\VendAPI('https://shopname.vendhq.com','VEND_TOKEN_TYPE','VEND_ACCESS_TOKEN');
 $products = $vend->getProducts();
 ```
 
@@ -39,7 +41,7 @@ $products = $vend->getProducts();
 ### Get Products
 
 ```php
-$vend = new VendAPI\VendAPI('https://shopname.vendhq.com','username','password');
+$vend = new VendAPI\VendAPI('https://shopname.vendhq.com','VEND_TOKEN_TYPE','VEND_ACCESS_TOKEN');
 $products = $vend->getProducts();
 ```
 

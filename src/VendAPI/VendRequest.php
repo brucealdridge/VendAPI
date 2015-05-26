@@ -37,8 +37,11 @@ class VendRequest
             CURLOPT_TIMEOUT => 120,
             CURLOPT_FAILONERROR => 1,
             CURLOPT_HTTPAUTH => CURLAUTH_ANY,
-            CURLOPT_USERPWD => $username.':'.$password,
-            CURLOPT_HTTPHEADER,array('Accept: application/json','Content-Type: application/json'),
+            CURLOPT_HTTPHEADER,array(
+                'Accept: application/json',
+                'Content-Type: application/json',
+                'Authorization: '.$username.' '.$password
+            ),
             CURLOPT_HEADER => 1
         );
 
@@ -101,23 +104,10 @@ class VendRequest
         $this->response = $response = curl_exec($this->curl);
 
         $header_size = curl_getinfo($this->curl, CURLINFO_HEADER_SIZE);
-        $cookie = strrpos($response, 'Set-Cookie: ');
-        $break = strpos($response, "\r\n\r\n", $cookie);
 
-        if ($cookie !== false && $break !== false) {
-            $break = $break + strlen("\r\n\r\n");
-            $this->http_header = substr($response, 0, $break);
-            $this->http_body = substr($response, $break);
-        }else{
-            $this->http_header = substr($response, 0, $header_size);
-            $this->http_body = substr($response, $header_size);
-        }
-        if (!$this->cookie) {
-            if (preg_match_all('/(?:Set-Cookie: )([^; ]*)/', $this->http_header, $cookie)) {
-                $this->cookie = $cookie[1][count($cookie[1]) - 1];
-                $this->setOpt(CURLOPT_COOKIE, $this->cookie);
-            }
-        }
+        $this->http_header = substr($response, 0, $header_size);
+        $this->http_body = substr($response, $header_size);
+
 
         if ($this->debug) {
             $this->curl_debug = curl_getinfo($this->curl);
