@@ -37,7 +37,7 @@ class VendRequest
             CURLOPT_TIMEOUT => 120,
             CURLOPT_FAILONERROR => 1,
             CURLOPT_HTTPAUTH => CURLAUTH_ANY,
-            CURLOPT_HTTPHEADER,array(
+            CURLOPT_HTTPHEADER => array(
                 'Accept: application/json',
                 'Content-Type: application/json',
                 'Authorization: '.$username.' '.$password
