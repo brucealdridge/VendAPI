@@ -107,6 +107,26 @@ class VendAPI
 
         return $this->apiGetProducts($path);
     }
+
+    /**
+     * Get all active registers
+     *
+     * @param array $options .. optional
+     * @return array
+     */
+    public function getRegisters($options = array())
+    {
+        $path = '';
+        if (count($options)) {
+            foreach ($options as $k => $v) {
+                $v = urlencode($v);  // ensure values with spaces etc are encoded properly
+                $path .= '/'.$k.'/'.$v;
+            }
+        }
+
+        return $this->apiGetRegisters($path);
+    }
+    
     /**
      * Get all sales
      *
@@ -221,6 +241,25 @@ class VendAPI
 
         return $sales;
     }
+    /**
+     * @param $path
+     * @return array
+     * @throws Exception
+     */
+    private function apiGetRegisters($path)
+    {
+        $result = $this->_request('/api/registers'.$path);
+        if (!isset($result->registers) || !is_array($result->registers)) {
+            throw new Exception("Error: Unexpected result for request");
+        }
+        $sales = array();
+        foreach ($result->register_sales as $s) {
+            $sales[] = new VendSale($s, $this);
+        }
+
+        return $sales;
+    }
+
     /**
      * Save vendproduct object to vend
      * @param object $product
