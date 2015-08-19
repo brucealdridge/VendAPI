@@ -45,6 +45,13 @@ class VendAPI
     public $default_outlet = 'Main Outlet';
 
     /**
+     * If rate limiting kicks in and the retry-after date is earlier than the current system time
+     * then this API will sleep for 60 seconds, otherwise an exception will be thrown.
+     * The right thing to do is ensure that your system has its time synchronised with a time server.
+     */
+    public $allow_time_slip = false;
+
+    /**
      * @param string $url          url of your shop eg https://shopname.vendhq.com
      * @param string $tokenType    tokenType for api
      * @param string $accessToken  accessToken for api
@@ -111,6 +118,7 @@ class VendAPI
         $path = '';
         if (count($options)) {
             foreach ($options as $k => $v) {
+                $v = urlencode($v);  // ensure values with spaces etc are encoded properly
                 $path .= '/'.$k.'/'.$v;
             }
         }
@@ -271,6 +279,34 @@ class VendAPI
         $result = json_decode($rawresult);
         if ($result === null) {
             throw new Exception("Error: Recieved null result from API");
+        }
+
+        // Check for 400+ error:
+        if($this->requestr->http_code >= 400) {
+            if($this->requestr->http_code == 429) {    // Too Many Requests
+                $retry_after = strtotime($result->{'retry-after'});
+                if($retry_after < time()) {
+                    if($this->allow_time_slip) {
+                        // The date on the current machine must be out of sync ... sleep for a minute to give the API time to cool down
+                        sleep(60);
+                    } else {
+                        throw new Exception("Rate limit hit on API yet retry-after time given is in the past. Please check time of local system. Set \$allow-time-slip to true to work around this problem");
+                    }
+                }
+                if($this->debug) {
+                    echo "Vend API rate limit hit\n";
+                    echo "Time now on local system is ".date('r',time())."\n";
+                    echo "Sleeping until ".date('r', $retry_after)." (as advised by Vend API) ";
+                }
+                while(time() < $retry_after) {
+                    sleep(1);
+                    if($this->debug) { echo "."; }
+                }
+
+                // We've given the Vend API time to cool down - retry the original request:
+                return $this->_request($path, $data, $depage);
+            }
+            throw new Exception("Error: Unexpected HTTP ".$this->requestr->http_code." result from API");
         }
 
         if ($depage && isset($result->pagination) && $result->pagination->page == 1) {
