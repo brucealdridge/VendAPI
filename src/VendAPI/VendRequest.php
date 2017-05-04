@@ -112,7 +112,7 @@ class VendRequest
         $this->http_body = substr($response, $header_size);
 
         if ($this->debug) {
-            $this->curl_debug = $status;
+            $this->curl_debug = $curl_status;
             $head = $foot = "\n";
             if (php_sapi_name() !== 'cli') {
                 $head = '<pre>';
