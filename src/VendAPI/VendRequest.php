@@ -121,7 +121,7 @@ class VendRequest
             echo $head.$this->curl_debug['request_header'].$foot.
                  ($this->posted ? $head.$this->posted.$foot : '').
                  $head.$this->http_header.$foot.
-                 $head.$this->http_body.$foot;
+                 $head.htmlentities($this->http_body).$foot;
         }
         return $this->http_body;
     }
