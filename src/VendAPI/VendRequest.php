@@ -112,7 +112,7 @@ class VendRequest
         $this->http_body = substr($response, $header_size);
 
         if ($this->debug) {
-            $this->curl_debug = $status;
+            $this->curl_debug = $curl_status;
             $head = $foot = "\n";
             if (php_sapi_name() !== 'cli') {
                 $head = '<pre>';
@@ -121,7 +121,7 @@ class VendRequest
             echo $head.$this->curl_debug['request_header'].$foot.
                  ($this->posted ? $head.$this->posted.$foot : '').
                  $head.$this->http_header.$foot.
-                 $head.$this->http_body.$foot;
+                 $head.htmlentities($this->http_body).$foot;
         }
         return $this->http_body;
     }
