@@ -198,9 +198,9 @@ class VendAPI
      *
      * @return object returned from vend
      */
-    public function request($path)
+    public function request($path, $data = null)
     {
-        return $this->_request($path);
+        return $this->_request($path, $data);
     }
     private function apiGetProducts($path)
     {
