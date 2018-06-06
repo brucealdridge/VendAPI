@@ -63,6 +63,12 @@ $donut->save();
 echo 'Donut product id is '.$donut->id;
 ```
 
+### Delete a product
+
+```php
+$vend->deleteProduct('42c2ccc4-fbf4-11e1-b195-4040782fde00');
+```
+
 ### Add a Sale
 
 ```php

@@ -87,6 +87,16 @@ class VendRequest
         $this->posted = $rawdata;
         return $this->_request($path, 'post');
     }
+	public function delete($path)
+    {
+        $this->setOpt(
+            array(
+                CURLOPT_POSTFIELDS => null,
+                CURLOPT_CUSTOMREQUEST => 'DELETE'
+            )
+        );
+        return $this->_request($path, 'delete');
+    }
     public function get($path)
     {
         $this->setOpt(
