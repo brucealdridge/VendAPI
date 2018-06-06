@@ -1,7 +1,5 @@
 {
     "name": "vendapi/vendapi",
-    "version": "1.2.0",
-
     "type": "library",
     "description": "Vend API class",
     "keywords": ["shopping","shop", "e-commerce"],

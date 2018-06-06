@@ -1,13 +1,47 @@
 Vend API class
 ==============
 
-This is a fork of Bruce Aldridge's Vend API. This fork includes the ability to DELETE products from Vend.
+This is a basic PHP class for using the API for Vend (vendhq.com). It
+is at a really basic state but it does exactly what I need at the
+moment. Feel free to add any issues/bugs and send me any pull
+requests.
 
-### Basic Usage
+NB: Updated to use oauth for July 2015 deprecation, if you have sample code for handling oauth authorization and token refreshes submit a pull requst
+
+
+## Installation and Basic Usage
+
+### With Composer
+
+The easiest way to install Vend API is via [composer](http://getcomposer.org/). Create the following `composer.json` file and run the `php composer.phar install` command to install it.
+
+```json
+{
+    "require": {
+        "vendapi/vendapi": "dev-master"
+    }
+}
+```
+
+### Without Composer
+
+
+Why are you not using [composer](http://getcomposer.org/)? Download and extract the [zip file](https://github.com/brucealdridge/VendAPI/archive/master.zip) from the repo into your project path somewhere.
 
 ```php
-require 'vendapi.php';
-$vend = new VendAPI\VendAPI('https://shopname.vendhq.com','username','password');
+<?php
+require 'path/to/src/VendApi/VendApi.php';
+
+$vend = new VendAPI\VendAPI('https://shopname.vendhq.com','VEND_TOKEN_TYPE','VEND_ACCESS_TOKEN');
+$products = $vend->getProducts();
+```
+
+## API Usage
+
+### Get Products
+
+```php
+$vend = new VendAPI\VendAPI('https://shopname.vendhq.com','VEND_TOKEN_TYPE','VEND_ACCESS_TOKEN');
 $products = $vend->getProducts();
 ```
 
@@ -73,8 +107,7 @@ if ($product->getInventory() == 0) {
 }
 ```
 
-
-### Debugging
+## Debugging
 
 To debug make a call to the ```debug()``` function.
 eg:

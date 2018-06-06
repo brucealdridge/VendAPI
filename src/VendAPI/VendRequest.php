@@ -25,6 +25,8 @@ class VendRequest
     private $http_header;
     private $http_body;
 
+    public $http_code;
+
     public function __construct($url, $username, $password)
     {
         $this->curl = curl_init();
@@ -35,10 +37,13 @@ class VendRequest
         $options = array(
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_TIMEOUT => 120,
-            CURLOPT_FAILONERROR => 1,
+            CURLOPT_FAILONERROR => 0,    // 0 allows us to process the 400 responses (e.g. rate limits)
             CURLOPT_HTTPAUTH => CURLAUTH_ANY,
-            CURLOPT_USERPWD => $username.':'.$password,
-            CURLOPT_HTTPHEADER,array('Accept: application/json','Content-Type: application/json'),
+            CURLOPT_HTTPHEADER => array(
+                'Accept: application/json',
+                'Content-Type: application/json',
+                'Authorization: '.$username.' '.$password
+            ),
             CURLOPT_HEADER => 1
         );
 
@@ -109,28 +114,15 @@ class VendRequest
         $this->setOpt(CURLOPT_URL, $this->url.$path);
 
         $this->response = $response = curl_exec($this->curl);
+        $curl_status = curl_getinfo($this->curl);
+        $this->http_code = $curl_status['http_code'];
+        $header_size = $curl_status['header_size'];
 
-        $header_size = curl_getinfo($this->curl, CURLINFO_HEADER_SIZE);
-        $cookie = strrpos($response, 'Set-Cookie: ');
-        $break = strpos($response, "\r\n\r\n", $cookie);
-
-        if ($cookie !== false && $break !== false) {
-            $break = $break + strlen("\r\n\r\n");
-            $this->http_header = substr($response, 0, $break);
-            $this->http_body = substr($response, $break);
-        }else{
-            $this->http_header = substr($response, 0, $header_size);
-            $this->http_body = substr($response, $header_size);
-        }
-        if (!$this->cookie) {
-            if (preg_match_all('/(?:Set-Cookie: )([^; ]*)/', $this->http_header, $cookie)) {
-                $this->cookie = $cookie[1][count($cookie[1]) - 1];
-                $this->setOpt(CURLOPT_COOKIE, $this->cookie);
-            }
-        }
+        $this->http_header = substr($response, 0, $header_size);
+        $this->http_body = substr($response, $header_size);
 
         if ($this->debug) {
-            $this->curl_debug = curl_getinfo($this->curl);
+            $this->curl_debug = $curl_status;
             $head = $foot = "\n";
             if (php_sapi_name() !== 'cli') {
                 $head = '<pre>';
@@ -139,7 +131,7 @@ class VendRequest
             echo $head.$this->curl_debug['request_header'].$foot.
                  ($this->posted ? $head.$this->posted.$foot : '').
                  $head.$this->http_header.$foot.
-                 $head.$this->http_body.$foot;
+                 $head.htmlentities($this->http_body).$foot;
         }
         return $this->http_body;
     }

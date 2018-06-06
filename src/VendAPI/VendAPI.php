@@ -9,7 +9,7 @@
  *
  * @package    VendAPI
  * @author     Bruce Aldridge <bruce@incode.co.nz>
- * @copyright  2012-2013 Bruce Aldridge
+ * @copyright  2012-2015 Bruce Aldridge
  * @license    http://www.gnu.org/licenses/gpl-3.0.html GPL 3.0
  * @link       https://github.com/brucealdridge/vendapi
  */
@@ -45,17 +45,24 @@ class VendAPI
     public $default_outlet = 'Main Outlet';
 
     /**
+     * If rate limiting kicks in and the retry-after date is earlier than the current system time
+     * then this API will sleep for 60 seconds, otherwise an exception will be thrown.
+     * The right thing to do is ensure that your system has its time synchronised with a time server.
+     */
+    public $allow_time_slip = false;
+
+    /**
      * @param string $url          url of your shop eg https://shopname.vendhq.com
-     * @param string $username     username for api
-     * @param string $password     password for api
+     * @param string $tokenType    tokenType for api
+     * @param string $accessToken  accessToken for api
      * @param string $requestClass used for testing
      */
-    public function __construct($url, $username, $password, $requestClass = '\VendAPI\VendRequest')
+    public function __construct($url, $tokenType, $accessToken, $requestClass = '\VendAPI\VendRequest')
     {
         // trim trailing slash for niceness
         $this->url = rtrim($url, '/');
 
-        $this->requestr = new $requestClass($url, $username, $password);
+        $this->requestr = new $requestClass($url, $tokenType, $accessToken);
 
     }
     /**
@@ -100,6 +107,26 @@ class VendAPI
 
         return $this->apiGetProducts($path);
     }
+
+    /**
+     * Get all active registers
+     *
+     * @param array $options .. optional
+     * @return array
+     */
+    public function getRegisters($options = array())
+    {
+        $path = '';
+        if (count($options)) {
+            foreach ($options as $k => $v) {
+                $v = urlencode($v);  // ensure values with spaces etc are encoded properly
+                $path .= '/'.$k.'/'.$v;
+            }
+        }
+
+        return $this->apiGetRegisters($path);
+    }
+    
     /**
      * Get all sales
      *
@@ -111,6 +138,7 @@ class VendAPI
         $path = '';
         if (count($options)) {
             foreach ($options as $k => $v) {
+                $v = urlencode($v);  // ensure values with spaces etc are encoded properly
                 $path .= '/'.$k.'/'.$v;
             }
         }
@@ -181,9 +209,9 @@ class VendAPI
      *
      * @return object returned from vend
      */
-    public function request($path)
+    public function request($path, $data = null)
     {
-        return $this->_request($path);
+        return $this->_request($path, $data);
     }
     private function apiGetProducts($path)
     {
@@ -229,6 +257,25 @@ class VendAPI
 
         return $sales;
     }
+    /**
+     * @param $path
+     * @return array
+     * @throws Exception
+     */
+    private function apiGetRegisters($path)
+    {
+        $result = $this->_request('/api/registers'.$path);
+        if (!isset($result->registers) || !is_array($result->registers)) {
+            throw new Exception("Error: Unexpected result for request");
+        }
+        $sales = array();
+        foreach ($result->register_sales as $s) {
+            $sales[] = new VendSale($s, $this);
+        }
+
+        return $sales;
+    }
+
     /**
      * Save vendproduct object to vend
      * @param object $product
@@ -289,6 +336,34 @@ class VendAPI
         $result = json_decode($rawresult);
         if ($result === null) {
             throw new Exception("Error: Recieved null result from API");
+        }
+
+        // Check for 400+ error:
+        if($this->requestr->http_code >= 400) {
+            if($this->requestr->http_code == 429) {    // Too Many Requests
+                $retry_after = strtotime($result->{'retry-after'});
+                if($retry_after < time()) {
+                    if($this->allow_time_slip) {
+                        // The date on the current machine must be out of sync ... sleep for a minute to give the API time to cool down
+                        sleep(60);
+                    } else {
+                        throw new Exception("Rate limit hit on API yet retry-after time given is in the past. Please check time of local system. Set \$allow-time-slip to true to work around this problem");
+                    }
+                }
+                if($this->debug) {
+                    echo "Vend API rate limit hit\n";
+                    echo "Time now on local system is ".date('r',time())."\n";
+                    echo "Sleeping until ".date('r', $retry_after)." (as advised by Vend API) ";
+                }
+                while(time() < $retry_after) {
+                    sleep(1);
+                    if($this->debug) { echo "."; }
+                }
+
+                // We've given the Vend API time to cool down - retry the original request:
+                return $this->_request($path, $data, $depage);
+            }
+            throw new Exception("Error: Unexpected HTTP ".$this->requestr->http_code." result from API");
         }
 
         if ($depage && isset($result->pagination) && $result->pagination->page == 1) {
