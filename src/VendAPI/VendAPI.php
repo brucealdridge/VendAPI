@@ -126,7 +126,7 @@ class VendAPI
 
         return $this->apiGetRegisters($path);
     }
-    
+
     /**
      * Get all sales
      *
@@ -322,6 +322,10 @@ class VendAPI
 
         // Check for 400+ error:
         if($this->requestr->http_code >= 400) {
+			if($this->requestr->http_code == 400) {
+				// Error response from Vend, decode it and throw it
+				throw new Exception($result->error.'. '.$result->details);
+			}
             if($this->requestr->http_code == 429) {    // Too Many Requests
                 $retry_after = strtotime($result->{'retry-after'});
                 if($retry_after < time()) {
